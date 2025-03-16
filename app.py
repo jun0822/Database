@@ -23,12 +23,12 @@ csv_file_path = "Student_performance_data.csv"
 if os.path.exists(csv_file_path):
     # 1) Load CSV
     df = pd.read_csv(csv_file_path)
-    st.subheader("CSV Preview (first 10 rows)")
+    st.subheader("Original Data Preview (first 10 rows)")
     st.dataframe(df.head(10))
 
     # 2) Subset & Clean Data
     df_info = df[["StudentID", "Age", "Gender", "GPA", "GradeClass"]].dropna()
-    st.subheader("Subset & Cleaned Data Preview (first 10 rows)")
+    st.subheader("Overall Data Preview (first 10 rows)")
     st.dataframe(df_info.head(10))
 
     # 3) Transform Age & GPA for Charting
@@ -36,7 +36,7 @@ if os.path.exists(csv_file_path):
     df_info_for_chart = df_info.copy()
     df_info_for_chart["Age"] = df_info_for_chart["Age"].round(0).astype(int)
 
-    # Categorize GPA into 1.0, 2.0, 3.0, 4.0
+    # Categorize GPA 
     def categorize_gpa(g):
         if g < 1.5:
             return "1.0"
@@ -50,7 +50,7 @@ if os.path.exists(csv_file_path):
     df_info_for_chart["GPA_Cat"] = df_info_for_chart["GPA"].apply(categorize_gpa)
 
     # 4) Pie Charts in 2×2 Layout
-    st.subheader("2×2 Pie Charts (Age, Gender, *Categorized* GPA, GradeClass)")
+    st.subheader("Pie Charts (Age, Gender, GPA, GradeClass)")
 
     def build_pie_chart(series, label):
         """Helper function to build a donut chart for any column."""
