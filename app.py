@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Streamlit app to ingest a pre-loaded student CSV -> subset columns ->
-display a CSV preview table, then a subset & cleaned data preview 
-with 2x2 pie charts for Age, Gender, GPA, and GradeClass -> insert data into MongoDB Atlas -> check duplicates.
+Streamlit app to categorize GPA into 1.0, 2.0, 3.0, 4.0 bins,
+then display a 2×2 layout of pie charts (Age, Gender, *Categorized* GPA, GradeClass).
 """
 
 import streamlit as st
@@ -11,47 +10,56 @@ import altair as alt
 from pymongo import MongoClient, errors
 import os
 
-st.title("Student Data Pipeline (CSV -> MongoDB Atlas) with 2×2 Pie Charts")
+st.title("Student Data Pipeline (Categorized GPA) -> MongoDB Atlas")
 
 # Hard-coded MongoDB Atlas connection settings
 CLOUD_CONN = "mongodb+srv://jun:jungjunwon0822@cluster0.6utno.mongodb.net/"
 CLOUD_DB_NAME = "Student"
 CLOUD_COLL_NAME = "student_info"
 
-# Path to the CSV file (ensure it's in your repo alongside app.py)
+# Path to the CSV file
 csv_file_path = "Student_performance_data.csv"
 
 if os.path.exists(csv_file_path):
-    # 1) Load the CSV and show its preview (table only)
+    # 1) Load CSV
     df = pd.read_csv(csv_file_path)
     st.subheader("CSV Preview (first 10 rows)")
     st.dataframe(df.head(10))
-    
+
     # 2) Subset & Clean Data
-    # Keep only these columns and drop rows with missing values
     df_info = df[["StudentID", "Age", "Gender", "GPA", "GradeClass"]].dropna()
     st.subheader("Subset & Cleaned Data Preview (first 10 rows)")
     st.dataframe(df_info.head(10))
-    
-    # 3) Pie Charts in 2×2 Layout
-    st.subheader("2×2 Pie Charts for Age, Gender, GPA, and GradeClass")
 
-    # We'll round Age and GPA to reduce the number of slices
-    # Age -> 0 decimals, GPA -> 1 decimal
+    # 3) Transform Age & GPA for Charting
+    # Round Age to integer
     df_info_for_chart = df_info.copy()
     df_info_for_chart["Age"] = df_info_for_chart["Age"].round(0).astype(int)
-    df_info_for_chart["GPA"] = df_info_for_chart["GPA"].round(1)
 
-    # A small helper function to build a donut chart for any column
-    def build_pie_chart(df_col, label):
-        # Count each unique value
-        counts = df_col.value_counts().reset_index()
+    # Categorize GPA into 1.0, 2.0, 3.0, 4.0
+    def categorize_gpa(g):
+        if g < 1.5:
+            return "1.0"
+        elif g < 2.5:
+            return "2.0"
+        elif g < 3.5:
+            return "3.0"
+        else:
+            return "4.0"
+    
+    df_info_for_chart["GPA_Cat"] = df_info_for_chart["GPA"].apply(categorize_gpa)
+
+    # 4) Pie Charts in 2×2 Layout
+    st.subheader("2×2 Pie Charts (Age, Gender, *Categorized* GPA, GradeClass)")
+
+    def build_pie_chart(series, label):
+        """Helper function to build a donut chart for any column."""
+        counts = series.value_counts().reset_index()
         counts.columns = [label, "Count"]
         
-        # Create a donut chart
         chart = (
             alt.Chart(counts)
-            .mark_arc(innerRadius=50)  # Donut style
+            .mark_arc(innerRadius=50)  # Donut
             .encode(
                 theta="Count:Q",
                 color=f"{label}:N",
@@ -75,8 +83,8 @@ if os.path.exists(csv_file_path):
     # Second row: GPA (left), GradeClass (right)
     col3, col4 = st.columns(2)
     with col3:
-        st.write("GPA Distribution (rounded to 1 decimal)")
-        chart_gpa = build_pie_chart(df_info_for_chart["GPA"], "GPA")
+        st.write("GPA Distribution (categorized into 1.0, 2.0, 3.0, 4.0)")
+        chart_gpa = build_pie_chart(df_info_for_chart["GPA_Cat"], "GPA")
         st.altair_chart(chart_gpa, use_container_width=True)
 
     with col4:
@@ -84,49 +92,47 @@ if os.path.exists(csv_file_path):
         chart_grade = build_pie_chart(df_info_for_chart["GradeClass"], "GradeClass")
         st.altair_chart(chart_grade, use_container_width=True)
 
-    # Convert cleaned DataFrame to list of dictionaries for MongoDB insertion
+    # 5) Insert into MongoDB Atlas
+    # Convert the original (uncategorized) df_info for insertion
     record_data = df_info.to_dict(orient="records")
-    
-    # 4) Insert into MongoDB Atlas (on button click)
+
     if st.button("Insert Data into MongoDB Atlas"):
-        # Connect to MongoDB Atlas
         try:
             cloud_client = MongoClient(CLOUD_CONN)
             st.success("Connection to MongoDB Atlas succeeded!")
         except Exception as e:
             st.error(f"Connection failed: {e}")
             st.stop()
-        
+
         clouddb = cloud_client[CLOUD_DB_NAME]
         cloudrecordcol = clouddb[CLOUD_COLL_NAME]
-        
+
         # Delete existing data (optional)
         cloudrecordcol.delete_many({})
         st.info("Deleted all existing records in the cloud collection.")
-        
+
         # Create unique index on StudentID
         cloudrecordcol.create_index("StudentID", unique=True)
-        
-        # Insert data into the cloud collection
+
+        # Insert data
         try:
             cloudrecordcol.insert_many(record_data)
             st.success("Data inserted into cloud collection successfully.")
         except errors.PyMongoError as e:
             st.error(f"An error occurred in cloud collection: {e}")
-        
-        # 5) Verify data insertion
+
+        # Verify insertion
         try:
             cloud_count = cloudrecordcol.count_documents({})
             st.write(f"Cloud collection count: {cloud_count}")
         except errors.PyMongoError as e:
             st.error(f"An error occurred while counting documents: {e}")
-        
-        # 6) Check for duplicates using an aggregation pipeline
+
+        # Check for duplicates
         pipeline = [
             {"$group": {"_id": "$StudentID", "count": {"$sum": 1}}},
             {"$match": {"count": {"$gt": 1}}}
         ]
-        
         try:
             cloud_duplicates = list(cloudrecordcol.aggregate(pipeline))
             if cloud_duplicates:
@@ -135,6 +141,5 @@ if os.path.exists(csv_file_path):
                 st.write("No duplicates found in cloud collection.")
         except errors.PyMongoError as e:
             st.error(f"Error checking duplicates in cloud: {e}")
-
 else:
     st.error("CSV file not found. Please ensure 'Student_performance_data.csv' is in the same directory as app.py.")
