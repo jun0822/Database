@@ -83,7 +83,7 @@ if os.path.exists(csv_file_path):
     # Second row: GPA (left), GradeClass (right)
     col3, col4 = st.columns(2)
     with col3:
-        st.write("GPA Distribution (categorized into 1.0, 2.0, 3.0, 4.0)")
+        st.write("GPA Distribution")
         chart_gpa = build_pie_chart(df_info_for_chart["GPA_Cat"], "GPA")
         st.altair_chart(chart_gpa, use_container_width=True)
 
