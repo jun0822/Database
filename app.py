@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Streamlit app to ingest a pre-loaded student CSV -> subset columns ->
-show 4 pie charts (Age, Gender, GPA, GradeClass) -> insert data into MongoDB Atlas -> check duplicates.
+display a CSV preview table, then a subset & cleaned data preview with pie charts 
+for Age, Gender, GPA, and GradeClass -> insert data into MongoDB Atlas -> check duplicates.
 """
 
 import streamlit as st
@@ -10,7 +11,7 @@ import altair as alt
 from pymongo import MongoClient, errors
 import os
 
-st.title("Student Data (Subset & Pie Charts) -> MongoDB Atlas")
+st.title("Student Data Pipeline (CSV -> MongoDB Atlas) with Pie Charts")
 
 # Hard-coded MongoDB Atlas connection settings
 CLOUD_CONN = "mongodb+srv://jun:jungjunwon0822@cluster0.6utno.mongodb.net/"
@@ -21,17 +22,17 @@ CLOUD_COLL_NAME = "student_info"
 csv_file_path = "Student_performance_data.csv"
 
 if os.path.exists(csv_file_path):
-    # 1) Read the CSV
+    # 1) Load the CSV and show its preview (table only)
     df = pd.read_csv(csv_file_path)
+    st.subheader("CSV Preview (first 10 rows)")
+    st.dataframe(df.head(10))
     
-    # 2) Subset columns & drop rows with missing values
+    # 2) Subset & Clean Data (keep selected columns and drop missing values)
     df_info = df[["StudentID", "Age", "Gender", "GPA", "GradeClass"]].dropna()
-    
-    # Show the first 10 rows of the cleaned data
     st.subheader("Subset & Cleaned Data Preview (first 10 rows)")
     st.dataframe(df_info.head(10))
-
-    # 3) Pie Charts for Age, Gender, GPA, GradeClass
+    
+    # 3) Pie Charts for Subset & Cleaned Data:
     st.subheader("Pie Charts for Age, Gender, GPA, and GradeClass")
     
     columns_to_plot = ["Age", "Gender", "GPA", "GradeClass"]
@@ -39,14 +40,14 @@ if os.path.exists(csv_file_path):
     for col in columns_to_plot:
         st.write(f"**{col} Distribution**")
         
-        # Get counts of each unique value in the column
+        # Calculate the count for each unique value in the column
         df_counts = df_info[col].value_counts().reset_index()
         df_counts.columns = [col, "Count"]
         
-        # Create a donut (pie) chart with Altair
+        # Create a donut (pie) chart using Altair
         chart = (
             alt.Chart(df_counts)
-            .mark_arc(innerRadius=50)  # Donut style; remove for standard pie
+            .mark_arc(innerRadius=50)  # Use innerRadius=50 for donut style; remove for standard pie
             .encode(
                 theta="Count:Q",
                 color=f"{col}:N",
@@ -55,10 +56,10 @@ if os.path.exists(csv_file_path):
         )
         st.altair_chart(chart, use_container_width=True)
 
-    # Convert cleaned DataFrame to list of dictionaries for MongoDB insertion
+    # Convert the cleaned DataFrame to a list of dictionaries for MongoDB insertion
     record_data = df_info.to_dict(orient="records")
-
-    # 4) Insert into MongoDB Atlas
+    
+    # 4) Insert into MongoDB Atlas (on button click)
     if st.button("Insert Data into MongoDB Atlas"):
         # Connect to MongoDB Atlas
         try:
@@ -85,7 +86,7 @@ if os.path.exists(csv_file_path):
         except errors.PyMongoError as e:
             st.error(f"An error occurred in cloud collection: {e}")
         
-        # 5) Verify data insertion
+        # 5) Verify data insertion by counting documents
         try:
             cloud_count = cloudrecordcol.count_documents({})
             st.write(f"Cloud collection count: {cloud_count}")
