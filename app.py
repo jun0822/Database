@@ -10,7 +10,7 @@ import altair as alt
 from pymongo import MongoClient, errors
 import os
 
-st.title("Student Data Pipeline (Categorized GPA) -> MongoDB Atlas")
+st.title("Student Performance Data")
 
 # Hard-coded MongoDB Atlas connection settings
 CLOUD_CONN = "mongodb+srv://jun:jungjunwon0822@cluster0.6utno.mongodb.net/"
