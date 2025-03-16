@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Streamlit app to ingest a pre-loaded student CSV -> subset columns ->
-insert data into MongoDB Atlas (hard-coded) and check for duplicates.
+insert data into MongoDB Atlas -> check duplicates.
+No local DB, no JSON/BSON, no graphing libraries.
 """
 
 import streamlit as st
@@ -19,23 +20,23 @@ CLOUD_COLL_NAME = "student_info"
 # Path to the CSV file (ensure it's in your repo alongside app.py)
 csv_file_path = "Student_performance_data.csv"
 
+# 1) Load CSV
 if os.path.exists(csv_file_path):
-    # Read CSV using pandas
     df = pd.read_csv(csv_file_path)
-    st.subheader("CSV Preview")
+    st.subheader("CSV Preview (first 10 rows)")
     st.dataframe(df.head(10))
     
-    # Subset the relevant columns and drop rows with missing values
-    df_info = df[["StudentID", "Age", "Gender", "GPA", "GradeClass"]]
-    df_info = df_info.dropna()
+    # 2) Subset & Clean Data
+    # Keep only columns of interest
+    df_info = df[["StudentID", "Age", "Gender", "GPA", "GradeClass"]].dropna()
     
-    st.subheader("Subset & Cleaned Data Preview")
+    st.subheader("Subset & Cleaned Data Preview (first 10 rows)")
     st.dataframe(df_info.head(10))
-    
-    # Convert DataFrame to list of dictionaries
+
+    # Convert DataFrame to list of dictionaries for MongoDB
     record_data = df_info.to_dict(orient="records")
-    
-    # Button to insert data into MongoDB Atlas
+
+    # 3) Insert into MongoDB Atlas
     if st.button("Insert Data into MongoDB Atlas"):
         # Connect to MongoDB Atlas
         try:
@@ -57,22 +58,19 @@ if os.path.exists(csv_file_path):
         
         # Insert data into the cloud collection
         try:
-            if isinstance(record_data, list):
-                cloudrecordcol.insert_many(record_data)
-            else:
-                cloudrecordcol.insert_one(record_data)
+            cloudrecordcol.insert_many(record_data)
             st.success("Data inserted into cloud collection successfully.")
         except errors.PyMongoError as e:
             st.error(f"An error occurred in cloud collection: {e}")
         
-        # Verify data insertion
+        # 4) Verify data insertion
         try:
             cloud_count = cloudrecordcol.count_documents({})
             st.write(f"Cloud collection count: {cloud_count}")
         except errors.PyMongoError as e:
             st.error(f"An error occurred while counting documents: {e}")
         
-        # Check for duplicates using aggregation pipeline
+        # 5) Check for duplicates using aggregation pipeline
         pipeline = [
             {"$group": {"_id": "$StudentID", "count": {"$sum": 1}}},
             {"$match": {"count": {"$gt": 1}}}
@@ -86,5 +84,6 @@ if os.path.exists(csv_file_path):
                 st.write("No duplicates found in cloud collection.")
         except errors.PyMongoError as e:
             st.error(f"Error checking duplicates in cloud: {e}")
+
 else:
     st.error("CSV file not found. Please ensure 'Student_performance_data.csv' is in the same directory as app.py.")
