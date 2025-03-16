@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Streamlit app to ingest a pre-loaded student CSV -> subset columns ->
-insert data into MongoDB Atlas and check for duplicates.
+insert data into MongoDB Atlas (hard-coded) and check for duplicates.
 """
 
 import streamlit as st
@@ -11,7 +11,12 @@ import os
 
 st.title("Student Data Pipeline (CSV -> MongoDB Atlas)")
 
-# Path to the CSV file (ensure it's in your repository)
+# Hard-coded MongoDB Atlas connection settings
+CLOUD_CONN = "mongodb+srv://jun:jungjunwon0822@cluster0.6utno.mongodb.net/"
+CLOUD_DB_NAME = "Student"
+CLOUD_COLL_NAME = "student_info"
+
+# Path to the CSV file (ensure it's in your repo alongside app.py)
 csv_file_path = "Student_performance_data.csv"
 
 if os.path.exists(csv_file_path):
@@ -30,23 +35,18 @@ if os.path.exists(csv_file_path):
     # Convert DataFrame to list of dictionaries
     record_data = df_info.to_dict(orient="records")
     
-    # MongoDB Atlas Connection Settings
-    st.subheader("MongoDB Atlas Connection")
-    cloud_conn = st.text_input("Cloud Mongo URI", "mongodb+srv://jun:jungjunwon0822@cluster0.6utno.mongodb.net/")
-    cloud_db_name = st.text_input("Cloud DB Name", "Student")
-    cloud_coll_name = st.text_input("Cloud Collection Name", "student_info")
-    
+    # Button to insert data into MongoDB Atlas
     if st.button("Insert Data into MongoDB Atlas"):
         # Connect to MongoDB Atlas
         try:
-            cloud_client = MongoClient(cloud_conn)
+            cloud_client = MongoClient(CLOUD_CONN)
             st.success("Connection to MongoDB Atlas succeeded!")
         except Exception as e:
             st.error(f"Connection failed: {e}")
             st.stop()
         
-        clouddb = cloud_client[cloud_db_name]
-        cloudrecordcol = clouddb[cloud_coll_name]
+        clouddb = cloud_client[CLOUD_DB_NAME]
+        cloudrecordcol = clouddb[CLOUD_COLL_NAME]
         
         # Delete existing data (optional)
         cloudrecordcol.delete_many({})
