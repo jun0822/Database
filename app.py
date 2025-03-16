@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Streamlit app to ingest student CSV -> subset columns -> convert to BSON -> 
+Streamlit app to ingest a pre-loaded student CSV -> subset columns -> convert to BSON -> 
 insert into local & cloud MongoDB -> check duplicates.
 """
 
@@ -13,15 +13,14 @@ import os
 
 st.title("Student Data Pipeline (CSV -> MongoDB)")
 
-# Step 1: CSV File Uploader
-uploaded_file = st.file_uploader("Upload your Student CSV", type=["csv"])
+# Instead of using a file uploader, load the CSV file directly from the project directory.
+csv_file_path = "Student_performance_data.csv"
 
-if uploaded_file:
-    # Read CSV with pandas
-    df = pd.read_csv(uploaded_file)
+if os.path.exists(csv_file_path):
+    df = pd.read_csv(csv_file_path)
     st.subheader("CSV Preview")
     st.dataframe(df.head(10))
-
+    
     # Subset columns
     df_info = df[["StudentID", "Age", "Gender", "GPA", "GradeClass"]]
     # Drop rows with missing values
@@ -137,4 +136,4 @@ if uploaded_file:
         if os.path.exists(bson_filename):
             os.remove(bson_filename)
 else:
-    st.info("Please upload a CSV to begin.")
+    st.error("CSV file not found. Please ensure 'Student_performance_data.csv' is in the same directory as app.py.")
