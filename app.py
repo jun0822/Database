@@ -24,12 +24,12 @@ csv_file_path = "Student_performance_data.csv"
 if os.path.exists(csv_file_path):
     # 1) Load CSV
     df = pd.read_csv(csv_file_path)
-    st.subheader("Original Data Preview")
+    st.subheader("Original Data Preview ")
     st.dataframe(df.head(10))
 
     # 2) Subset & Clean Data
     df_info = df[["StudentID", "Age", "Gender", "GPA", "GradeClass"]].dropna()
-    st.subheader("Overall Data Preview")
+    st.subheader("Overall Data Preview ")
     st.dataframe(df_info.head(10))
 
     # 3) Transform Age & GPA for Charting
