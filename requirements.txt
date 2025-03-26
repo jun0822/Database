@@ -1,3 +1,5 @@
-streamlit
-pandas
-pymongo
+streamlit==1.23.1
+pandas==2.0.1
+pymongo==4.3.3
+certifi==2023.5.7
+altair==4.2.2
