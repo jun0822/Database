@@ -172,7 +172,7 @@ if os.path.exists(csv_file_path):
                 # Insert the new record
                 insert_result = cloudrecordcol.insert_one(new_record)
                 st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
-                st.experimental_rerun()  # Refresh the app to update the data view if needed
+                # Removed st.experimental_rerun() call
             except Exception as e:
                 st.error(f"Insertion failed: {e}")
 
