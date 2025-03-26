@@ -33,11 +33,9 @@ if os.path.exists(csv_file_path):
     st.dataframe(df_info.head(10))
 
     # 3) Transform Age & GPA for Charting
-    # Round Age to integer
     df_info_for_chart = df_info.copy()
     df_info_for_chart["Age"] = df_info_for_chart["Age"].round(0).astype(int)
 
-    # Categorize GPA
     def categorize_gpa(g):
         if g < 1.5:
             return "1.0"
@@ -93,7 +91,7 @@ if os.path.exists(csv_file_path):
         chart_grade = build_pie_chart(df_info_for_chart["GradeClass"], "GradeClass")
         st.altair_chart(chart_grade, use_container_width=True)
 
-    # 5) Single Insert Form Only
+    # 5) Single Insert Form Only (No Bulk Insert)
     st.subheader("➕ Add a New Student Record")
     with st.form("new_student_form"):
         new_student_id = st.text_input("StudentID")
@@ -104,7 +102,6 @@ if os.path.exists(csv_file_path):
         new_submitted = st.form_submit_button("Add Student")
 
         if new_submitted:
-            # Create the new record dictionary
             new_record = {
                 "StudentID": new_student_id,
                 "Age": new_age,
@@ -112,13 +109,11 @@ if os.path.exists(csv_file_path):
                 "GPA": new_gpa,
                 "GradeClass": new_gradeclass
             }
-            # Debug: Output the new record so you can see what was entered
             st.write("New Record:", new_record)
             try:
                 cloud_client = MongoClient(CLOUD_CONN)
                 clouddb = cloud_client[CLOUD_DB_NAME]
                 cloudrecordcol = clouddb[CLOUD_COLL_NAME]
-                # Insert the new record
                 insert_result = cloudrecordcol.insert_one(new_record)
                 st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
             except Exception as e:
