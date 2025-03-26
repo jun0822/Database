@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Streamlit app to categorize GPA into 1.0, 2.0, 3.0, 4.0 bins,
-then display a 2×2 layout of pie charts (Age, Gender, *Categorized* GPA, GradeClass).
+then display a 2×2 layout of pie charts (Age, Gender, *Categorized* GPA, GradeClass),
+insert bulk data into MongoDB Atlas, and allow users to add new student records.
 """
 
 import streamlit as st
@@ -59,7 +60,7 @@ if os.path.exists(csv_file_path):
         
         chart = (
             alt.Chart(counts)
-            .mark_arc(innerRadius=50)  # Donut
+            .mark_arc(innerRadius=50)  # Donut style
             .encode(
                 theta="Count:Q",
                 color=f"{label}:N",
@@ -92,11 +93,11 @@ if os.path.exists(csv_file_path):
         chart_grade = build_pie_chart(df_info_for_chart["GradeClass"], "GradeClass")
         st.altair_chart(chart_grade, use_container_width=True)
 
-    # 5) Insert into MongoDB Atlas
+    # 5) Bulk Insert into MongoDB Atlas
     # Convert the original (uncategorized) df_info for insertion
     record_data = df_info.to_dict(orient="records")
 
-    if st.button("Insert Data into MongoDB Atlas"):
+    if st.button("Insert Data into MongoDB Atlas (Bulk Insert)"):
         try:
             cloud_client = MongoClient(CLOUD_CONN)
             st.success("Connection to MongoDB Atlas succeeded!")
@@ -117,7 +118,7 @@ if os.path.exists(csv_file_path):
         # Insert data
         try:
             cloudrecordcol.insert_many(record_data)
-            st.success("Data inserted into cloud collection successfully.")
+            st.success("Bulk data inserted into cloud collection successfully.")
         except errors.PyMongoError as e:
             st.error(f"An error occurred in cloud collection: {e}")
 
@@ -141,5 +142,32 @@ if os.path.exists(csv_file_path):
                 st.write("No duplicates found in cloud collection.")
         except errors.PyMongoError as e:
             st.error(f"Error checking duplicates in cloud: {e}")
+
+    # 6) Form to Add a New Student Record (Single Insert)
+    st.subheader("➕ Add a New Student Record")
+    with st.form("new_student_form"):
+        new_student_id = st.text_input("StudentID")
+        new_age = st.number_input("Age", min_value=1, max_value=100, value=18)
+        new_gender = st.selectbox("Gender", options=["Male", "Female", "Other"])
+        new_gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, value=0.0, step=0.1)
+        new_gradeclass = st.text_input("GradeClass")
+        new_submitted = st.form_submit_button("Add Student")
+        if new_submitted:
+            new_record = {
+                "StudentID": new_student_id,
+                "Age": new_age,
+                "Gender": new_gender,
+                "GPA": new_gpa,
+                "GradeClass": new_gradeclass
+            }
+            try:
+                cloud_client = MongoClient(CLOUD_CONN)
+                clouddb = cloud_client[CLOUD_DB_NAME]
+                cloudrecordcol = clouddb[CLOUD_COLL_NAME]
+                cloudrecordcol.insert_one(new_record)
+                st.success(f"Student {new_student_id} has been added!")
+                st.experimental_rerun()
+            except Exception as e:
+                st.error(f"Insertion failed: {e}")
 else:
     st.error("CSV file not found. Please ensure 'Student_performance_data.csv' is in the same directory as app.py.")
