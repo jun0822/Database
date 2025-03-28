@@ -54,11 +54,11 @@ if df is None or df_info_for_chart is None:
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Intro", "Analysis", "Insert Data"])
+page = st.sidebar.radio("Go to", ["📖Intro", "📈Analysis", "🔖Insert Data"])
 
 # Main Logic Using Big if-else Statement
-if page == "Intro":
-    st.title("Student Performance Dashboard")
+if page == "📖Intro":
+    st.title("Student Performance Dashboard📚")
     st.write("""
     This dashboard provides tools for analyzing student performance data and inserting it into MongoDB Atlas.
     - Use the sidebar to navigate between pages.
@@ -207,8 +207,8 @@ if page == "Intro":
         - **Email:** 0136704@student.uow.edu.my
                  
         **Name: Jung Jun Won**
-        - **Student ID:** 0136488
-        - **Email:** 0136488@student.uow.edu.my
+        - **Student ID:** 0136468
+        - **Email:** 0136468@student.uow.edu.my
                  
         **Name: Tan Jo Shen**
         - **Student ID:** 0136733
@@ -216,115 +216,201 @@ if page == "Intro":
          
         """)
 
-elif page == "Analysis":
-    st.title("Student Performance Data")
+elif page == "📈Analysis":
+    st.title("Student Performance Data📈")
 
+    # Add a select box to choose visualization type
+    visualization_option = st.selectbox(
+        "Select Visualization Type",
+        ["🥧Pie Chart", "📊Bar Chart", "📈Histogram", "⭐Correlations", "❌Absences"]
+    )
+
+    if visualization_option == "🥧Pie Chart":
     # Pie Charts in 2×2 Layout
-    st.subheader("General Distribution of Data")
+        st.subheader("General Distribution of Data")
 
-    def build_pie_chart(series, label):
-        counts = series.value_counts().reset_index()
-        counts.columns = [label, "Count"]
+        def build_pie_chart(series, label):
+            counts = series.value_counts().reset_index()
+            counts.columns = [label, "Count"]
 
-        chart = (
-            alt.Chart(counts)
-            .mark_arc(innerRadius=50)  # Donut
-            .encode(
-                theta="Count:Q",
-                color=f"{label}:N",
-                tooltip=[f"{label}:N", "Count:Q"]
+            chart = (
+                alt.Chart(counts)
+                .mark_arc(innerRadius=50)  # Donut
+                .encode(
+                    theta="Count:Q",
+                    color=f"{label}:N",
+                    tooltip=[f"{label}:N", "Count:Q"]
+                )
             )
-        )
-        return chart
+            return chart
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("Age Distribution")
-        chart_age = build_pie_chart(df_info_for_chart["Age"], "Age")
-        st.altair_chart(chart_age, use_container_width=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("Age Distribution")
+            chart_age = build_pie_chart(df_info_for_chart["Age"], "Age")
+            st.altair_chart(chart_age, use_container_width=True)
 
-    with col2:
-        st.write("Gender Distribution")
-        chart_gender = build_pie_chart(df_info_for_chart["Gender"], "Gender")
-        st.altair_chart(chart_gender, use_container_width=True)
+        with col2:
+            st.write("Gender Distribution")
+            chart_gender = build_pie_chart(df_info_for_chart["Gender"], "Gender")
+            st.altair_chart(chart_gender, use_container_width=True)
 
-    col3, col4 = st.columns(2)
-    with col3:
-        st.write("GPA Distribution")
-        chart_gpa = build_pie_chart(df_info_for_chart["GPA_Cat"], "GPA")
-        st.altair_chart(chart_gpa, use_container_width=True)
+        col3, col4 = st.columns(2)
+        with col3:
+            st.write("GPA Distribution")
+            chart_gpa = build_pie_chart(df_info_for_chart["GPA_Cat"], "GPA")
+            st.altair_chart(chart_gpa, use_container_width=True)
 
-    with col4:
-        st.write("GradeClass Distribution")
-        chart_grade = build_pie_chart(df_info_for_chart["GradeClass"], "GradeClass")
-        st.altair_chart(chart_grade, use_container_width=True)
-    
-    with st.expander("ℹ️ **Pie Chart Overview:**"):
+        with col4:
+            st.write("GradeClass Distribution")
+            chart_grade = build_pie_chart(df_info_for_chart["GradeClass"], "GradeClass")
+            st.altair_chart(chart_grade, use_container_width=True)
+
         st.markdown("""
-        The pie charts above provide a general overview of the distribution of student data based on the following categories:
-    
-        - **Age Distribution:** Approximately equal distribution among ages 15-18, with the mean of 598.
-        - **Gender Distribution:** Approximately equal distribution between males and females, with the mean of 1197.
-        - **GPA Distribution:** Majority of students have a GPA of 2.0 and lower, while less than 1/3 of students have a GPA of 3.0 and higher.
-        - **GradeClass Distribution:** Approximately half of the students fall into the 'F' class, with fewer students in the higher grade classes.
+        ### Pie Chart Analysis
+        - **Purpose**: 
+            - Visualize the proportional distribution of categorical data across different categories.
+        - **Visualization**: 
+            - Each slice of the pie chart represents the proportion of data points belonging to a specific category.
+            - The size of each slice is proportional to the frequency or percentage of the category it represents.
+        - **Insights**: 
+            - Quickly identify dominant categories and their relative sizes within the dataset.
+            - Highlight imbalances or trends in categorical distributions (e.g., gender, age groups, GPA categories).
+        - **Actionable Use**: 
+            - Tailor interventions or resource allocation based on the observed proportions (e.g., focusing on underrepresented groups or addressing imbalances in grade distributions).
         """)
+    
+        with st.expander("ℹ️ **Pie Chart Overview:**"):
+            st.markdown("""
+            The pie charts above provide a general overview of the distribution of student data based on the following categories:
+    
+            - **Age Distribution:** Approximately equal distribution among ages 15-18, with the mean of 598.
+            - **Gender Distribution:** Approximately equal distribution between males and females, with the mean of 1197.
+            - **GPA Distribution:** Majority of students have a GPA of 2.0 and lower, while less than 1/3 of students have a GPA of 3.0 and higher.
+            - **GradeClass Distribution:** Approximately half of the students fall into the 'F' class, with fewer students in the higher grade classes.
+            """)
 
-    # Countplots for Categorical Columns
-    st.subheader("Countplots for Categorical Columns")
+    elif visualization_option == "📊Bar Chart":
+        # Countplots for Categorical Columns
+        st.subheader("Countplots for Categorical Columns")
 
-    # Identify numerical columns: columns with more than 5 unique values are considered numerical
-    numerical_columns = [col for col in df.columns if df[col].nunique() > 5]
+        # Identify numerical columns: columns with more than 5 unique values are considered numerical
+        numerical_columns = [col for col in df.columns if df[col].nunique() > 5]
 
-    # Identify categorical columns: columns that are not numerical and not 'GradeClass'
-    categorical_columns = df.columns.difference(numerical_columns).difference(['GradeClass']).to_list()
+        # Identify categorical columns: columns that are not numerical and not 'GradeClass'
+        categorical_columns = df.columns.difference(numerical_columns).difference(['GradeClass']).to_list()
 
-    # Custom labels for the categorical columns
-    custom_labels = {
-        'Ethnicity': ['Caucasian', 'African American', 'Asian', 'Other'],
-        'Age': [15, 16, 17, 18],
-        'ParentalEducation': ['None', 'High School', 'Some College', 'Bachelor\'s', 'Higher'],
-        'Tutoring': ['No', 'Yes'],
-        'ParentalSupport': ['No', 'Low', 'Moderate', 'High', 'Very High'],
-        'Extracurricular': ['No', 'Yes'],
-        'Sports': ['No', 'Yes'],
-        'Music': ['No', 'Yes'],
-        'Volunteering': ['No', 'Yes'],
-        'Gender': ['Male', 'Female']
-    }
+        # Custom labels for the categorical columns
+        custom_labels = {
+            'Ethnicity': ['Caucasian', 'African American', 'Asian', 'Other'],
+            'Age': [15, 16, 17, 18],
+            'ParentalEducation': ['None', 'High School', 'Some College', 'Bachelor\'s', 'Higher'],
+            'Tutoring': ['No', 'Yes'],
+            'ParentalSupport': ['No', 'Low', 'Moderate', 'High', 'Very High'],
+            'Extracurricular': ['No', 'Yes'],
+            'Sports': ['No', 'Yes'],
+            'Music': ['No', 'Yes'],
+            'Volunteering': ['No', 'Yes'],
+            'Gender': ['Male', 'Female']
+        }
 
-    # Add a selection box to choose a categorical column
-    selected_column = st.selectbox("Select a categorical column to visualize", categorical_columns)
+        # Add a selection box to choose a categorical column
+        selected_column = st.selectbox("Select a categorical column to visualize", categorical_columns)
 
-    # Plot countplot for the selected column
-    if selected_column in custom_labels:
-        plt.figure(figsize=(8, 5))
-        sns.countplot(data=df, x=selected_column)
-        plt.title(f'Countplot of {selected_column}')
+        # Plot countplot for the selected column
+        if selected_column in custom_labels:
+            plt.figure(figsize=(8, 5))
+            sns.countplot(data=df, x=selected_column)
+            plt.title(f'Countplot of {selected_column}')
 
         # Directly set custom labels
-        labels = custom_labels[selected_column]
-        ticks = range(len(labels))
-        plt.xticks(ticks=ticks, labels=labels)
+            labels = custom_labels[selected_column]
+            ticks = range(len(labels))
+            plt.xticks(ticks=ticks, labels=labels)
 
+            plt.tight_layout()
+            st.pyplot(plt)  # Render the plot in Streamlit
+        else:
+            st.warning(f"No custom labels defined for column: {selected_column}")
+
+        st.markdown("""
+        ### Bar Chart Analysis
+        - **Purpose**: 
+            - Visualize student information distribution across the dataset.
+        - **Visualization**: 
+            - Each bar represents the count of students in a specific category.
+        - **Insights**: 
+            - Identify the distribution of students across different categories.
+            - Highlight any imbalances or trends in the data.
+        - **Actionable Use**: 
+            - Optimize resources and study plans based on the distribution of students.
+        """)
+    elif visualization_option == "📈Histogram":
+        st.subheader("Histogram of Numerical Columns")
+        numerical_columns = [col for col in df.columns if df[col].nunique() > 5]
+        selected_column = st.selectbox("Select a numerical column to visualize", numerical_columns)
+
+        plt.figure(figsize=(8, 5))
+        sns.histplot(df[selected_column], kde=True, bins=20)
+        plt.title(f'Histogram of {selected_column}')
+        plt.xlabel(selected_column)
+        plt.ylabel('Frequency')
         plt.tight_layout()
-        st.pyplot(plt)  # Render the plot in Streamlit
-    else:
-        st.warning(f"No custom labels defined for column: {selected_column}")
+        st.pyplot(plt)
+        st.markdown("""
+        ### Histogram Analysis
+        - **Purpose**: 
+            - Understand the distribution and frequency of numerical data across the dataset.
+        - **Visualization**: 
+            - The histogram displays the frequency of values within specified bins, providing a clear view of how the data is spread.
+        - **Insights**: 
+            - Identify patterns such as skewness, central tendency, and outliers in numerical variables like GPA, absences, or study time.
+            - Highlight any unusual trends or concentrations in the data.
+        - **Actionable Use**: 
+            - Tailor interventions or resources based on observed patterns (e.g., addressing high absence rates or improving study habits for low GPA students).
+        """)
 
-    st.markdown("""
-    ### Bar Chart Analysis
-    - **Purpose**: 
-        - Visualize student information distribution across the dataset.
-     - **Visualization**: 
-        - Each bar represents the count of students in a specific category.
-    - **Insights**: 
-        - Identify the distribution of students across different categories.
-        - Highlight any imbalances or trends in the data.
-    - **Actionable Use**: 
-        - Optimize resources and study plans based on the distribution of students.
-    """)
+    elif visualization_option == "⭐Correlations":
+        st.subheader("Correlation Heatmap")
+        corr_matrix = df.corr()
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+        plt.title("Correlation Matrix")
+        plt.tight_layout()
+        st.pyplot(plt)
+        st.markdown("""
+        ### Correlation Matrix Analysis
+        - **Purpose**: 
+            - Understand the relationships and dependencies between numerical variables in the dataset.
+        - **Visualization**: 
+            - The correlation heatmap displays the strength and direction of correlations (ranging from -1 to 1) between pairs of numerical variables.
+            - Positive values indicate a direct relationship, while negative values indicate an inverse relationship.
+        - **Insights**: 
+            - Identify strongly correlated variables that may influence each other (e.g., GPA and study time).
+            - Highlight weak or no correlations to determine independent variables.
+            - Detect potential multicollinearity issues in predictive modeling.
+        - **Actionable Use**: 
+            - Focus on highly correlated variables when designing interventions (e.g., improving study habits if it strongly correlates with GPA).
+            - Exclude redundant features in machine learning models to improve performance and interpretability.
+        """)
 
-elif page == "Insert Data":
+    elif visualization_option == "❌Absences":
+        st.subheader("Absence Analysis")
+        plt.figure(figsize=(8, 5))
+        sns.histplot(df["Absences"], bins=30, kde=True)
+        plt.title("Distribution of Absences")
+        plt.xlabel("Number of Absences")
+        plt.ylabel("Frequency")
+        plt.tight_layout()
+        st.pyplot(plt)
+        st.markdown("""
+        ### Absence Analysis
+        - **Purpose**: Understand the distribution of student absences.
+        - **Insights**: Identify trends in absences, such as whether most students have few or many absences.
+        - **Actionable Use**: Develop strategies to reduce absences for students with high absence rates.
+        """)
+
+elif page == "🔖Insert Data":
     st.title("Insert Data into MongoDB Atlas")
 
     # Hard-coded MongoDB Atlas connection settings
