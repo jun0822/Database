@@ -463,7 +463,7 @@ elif page == "🔖Insert Data":
         except errors.PyMongoError as e:
             st.error(f"Error checking or removing duplicates: {e}")
 
-st.subheader("➕ Add a New Student Record")
+    st.subheader("➕ Add a New Student Record")
     # Now define the form for adding a single new student
     with st.form("new_student_form"):
         new_student_id = st.text_input("StudentID")
