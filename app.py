@@ -439,18 +439,36 @@ elif page == "🔖Insert Data":
         cloudrecordcol.create_index("StudentID", unique=True)
 
         # Insert data
-        try:
-            cloudrecordcol.insert_many(record_data)
-            st.success("Data inserted into cloud collection successfully.")
-        except errors.PyMongoError as e:
-            st.error(f"An error occurred in cloud collection: {e}")
-
-        # Verify insertion
-        try:
-            cloud_count = cloudrecordcol.count_documents({})
-            st.write(f"Cloud collection count: {cloud_count}")
-        except errors.PyMongoError as e:
-            st.error(f"An error occurred while counting documents: {e}")
+        st.subheader("➕ Add a New Student Record")
+     with st.form("new_student_form"):
+         new_student_id = st.text_input("StudentID")
+         new_age = st.number_input("Age", min_value=1, max_value=100, value=18)
+         new_gender = st.selectbox("Gender", options=["Male", "Female", "Other"])
+         new_gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, value=0.0, step=0.1)
+         new_gradeclass = st.text_input("GradeClass")
+         new_submitted = st.form_submit_button("Add Student")
+ 
+         if new_submitted:
+             # Create the new record dictionary
+             new_record = {
+                 "StudentID": new_student_id,
+                 "Age": new_age,
+                 "Gender": new_gender,
+                 "GPA": new_gpa,
+                 "GradeClass": new_gradeclass
+             }
+             # Debug: Output the new record so you can see what was entered
+             st.write("New Record:", new_record)
+             try:
+                 cloud_client = MongoClient(CLOUD_CONN)
+                 clouddb = cloud_client[CLOUD_DB_NAME]
+                 cloudrecordcol = clouddb[CLOUD_COLL_NAME]
+                 # Insert the new record
+                 insert_result = cloudrecordcol.insert_one(new_record)
+                 st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
+                 # Removed st.experimental_rerun() call
+             except Exception as e:
+                 st.error(f"Insertion failed: {e}")
 
         # Check for duplicates
         pipeline = [
