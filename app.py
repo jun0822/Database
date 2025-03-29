@@ -420,6 +420,7 @@ elif page == "🔖Insert Data":
 
     record_data = df_info_for_chart.to_dict(orient="records")
 
+    # Button to insert the entire CSV data into MongoDB
     if st.button("Insert Data into MongoDB Atlas"):
         try:
             cloud_client = MongoClient(CLOUD_CONN)
@@ -438,37 +439,12 @@ elif page == "🔖Insert Data":
         # Create unique index on StudentID
         cloudrecordcol.create_index("StudentID", unique=True)
 
-        # Insert data
-        st.subheader("➕ Add a New Student Record")
-     with st.form("new_student_form"):
-         new_student_id = st.text_input("StudentID")
-         new_age = st.number_input("Age", min_value=1, max_value=100, value=18)
-         new_gender = st.selectbox("Gender", options=["Male", "Female", "Other"])
-         new_gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, value=0.0, step=0.1)
-         new_gradeclass = st.text_input("GradeClass")
-         new_submitted = st.form_submit_button("Add Student")
- 
-         if new_submitted:
-             # Create the new record dictionary
-             new_record = {
-                 "StudentID": new_student_id,
-                 "Age": new_age,
-                 "Gender": new_gender,
-                 "GPA": new_gpa,
-                 "GradeClass": new_gradeclass
-             }
-             # Debug: Output the new record so you can see what was entered
-             st.write("New Record:", new_record)
-             try:
-                 cloud_client = MongoClient(CLOUD_CONN)
-                 clouddb = cloud_client[CLOUD_DB_NAME]
-                 cloudrecordcol = clouddb[CLOUD_COLL_NAME]
-                 # Insert the new record
-                 insert_result = cloudrecordcol.insert_one(new_record)
-                 st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
-                 # Removed st.experimental_rerun() call
-             except Exception as e:
-                 st.error(f"Insertion failed: {e}")
+        # Insert the preprocessed CSV data
+        try:
+            cloudrecordcol.insert_many(record_data)
+            st.success("All CSV data inserted successfully.")
+        except errors.PyMongoError as e:
+            st.error(f"An error occurred during CSV data insertion: {e}")
 
         # Check for duplicates
         pipeline = [
@@ -483,3 +459,35 @@ elif page == "🔖Insert Data":
                 st.write("No duplicates found in cloud collection.")
         except errors.PyMongoError as e:
             st.error(f"Error checking duplicates in cloud: {e}")
+
+    st.subheader("➕ Add a New Student Record")
+    # Now define the form for adding a single new student
+    with st.form("new_student_form"):
+        new_student_id = st.text_input("StudentID")
+        new_age = st.number_input("Age", min_value=1, max_value=100, value=18)
+        new_gender = st.selectbox("Gender", options=["Male", "Female", "Other"])
+        new_gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, value=0.0, step=0.1)
+        new_gradeclass = st.text_input("GradeClass")
+        new_submitted = st.form_submit_button("Add Student")
+
+        if new_submitted:
+            # Create the new record dictionary
+            new_record = {
+                "StudentID": new_student_id,
+                "Age": new_age,
+                "Gender": new_gender,
+                "GPA": new_gpa,
+                "GradeClass": new_gradeclass
+            }
+            st.write("New Record:", new_record)
+
+            try:
+                cloud_client = MongoClient(CLOUD_CONN)
+                clouddb = cloud_client[CLOUD_DB_NAME]
+                cloudrecordcol = clouddb[CLOUD_COLL_NAME]
+
+                # Insert the new record
+                insert_result = cloudrecordcol.insert_one(new_record)
+                st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
+            except Exception as e:
+                st.error(f"Insertion failed: {e}")
