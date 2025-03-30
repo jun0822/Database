@@ -504,18 +504,27 @@ elif page == "🔖Insert Data":
             }
             st.write("New Record:", new_record)
 
-            try:
-                cloud_client = MongoClient(CLOUD_CONN)
-                clouddb = cloud_client[CLOUD_DB_NAME]
-                cloudrecordcol = clouddb[CLOUD_COLL_NAME]
-                
-        # Check if the StudentID already exists
-        try:
+            if new_submitted:
+    new_record = {...}
+    st.write("New Record:", new_record)
+
+    # 1) Try connecting
+    try:
+        cloud_client = MongoClient(CLOUD_CONN)
+        clouddb = cloud_client[CLOUD_DB_NAME]
+        cloudrecordcol = clouddb[CLOUD_COLL_NAME]
+        st.success("Connection to MongoDB Atlas succeeded!")
+    except Exception as e:
+        st.error(f"Connection failed: {e}")
+        st.stop()
+
+    # 2) Try inserting
+    try:
         existing_doc = cloudrecordcol.find_one({"StudentID": new_student_id})
         if existing_doc:
-            st.error(f"Student with ID {new_student_id} already exists. Please use a different ID.")
+            st.error(f"Student with ID {new_student_id} already exists.")
         else:
             insert_result = cloudrecordcol.insert_one(new_record)
-            st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
+            st.success(f"Student {new_student_id} added! Inserted ID: {insert_result.inserted_id}")
     except Exception as e:
         st.error(f"Insertion failed: {e}")
