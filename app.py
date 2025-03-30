@@ -267,21 +267,6 @@ elif page == "📈Analysis":
             st.altair_chart(chart_grade, use_container_width=True)
 
         st.markdown("""
-        ### Pie Chart Analysis
-        - **Purpose**: 
-            - Visualize the proportional distribution of categorical data across different categories.
-        - **Visualization**: 
-            - Each slice of the pie chart represents the proportion of data points belonging to a specific category.
-            - The size of each slice is proportional to the frequency or percentage of the category it represents.
-        - **Insights**: 
-            - Quickly identify dominant categories and their relative sizes within the dataset.
-            - Highlight imbalances or trends in categorical distributions (e.g., gender, age groups, GPA categories).
-        - **Actionable Use**: 
-            - Tailor interventions or resource allocation based on the observed proportions (e.g., focusing on underrepresented groups or addressing imbalances in grade distributions).
-        """)
-    
-        with st.expander("ℹ️ **Pie Chart Overview:**"):
-            st.markdown("""
             The pie charts above provide a general overview of the distribution of student data based on the following categories:
     
             - **Age Distribution:** Approximately equal distribution among ages 15-18, with the mean of 598.
@@ -289,6 +274,23 @@ elif page == "📈Analysis":
             - **GPA Distribution:** Majority of students have a GPA of 2.0 and lower, while less than 1/3 of students have a GPA of 3.0 and higher.
             - **GradeClass Distribution:** Approximately half of the students fall into the 'F' class, with fewer students in the higher grade classes.
             """)
+        
+        with st.expander("ℹ️ **Why Pie Charts**"):
+            st.markdown("""
+            ### Pie Chart Analysis
+            - **Purpose**: 
+                - Visualize the proportional distribution of categorical data across different categories.
+            - **Visualization**: 
+                - Each slice of the pie chart represents the proportion of data points belonging to a specific category.
+                - The size of each slice is proportional to the frequency or percentage of the category it represents.
+            - **Insights**: 
+                - Quickly identify dominant categories and their relative sizes within the dataset.
+                - Highlight imbalances or trends in categorical distributions (e.g., gender, age groups, GPA categories).
+             - **Actionable Use**: 
+                - Tailor interventions or resource allocation based on the observed proportions (e.g., focusing on underrepresented groups or addressing imbalances in grade distributions).
+            """)
+    
+
 
     elif visualization_option == "📊Bar Chart":
         # Countplots for Categorical Columns
@@ -314,6 +316,78 @@ elif page == "📈Analysis":
             'Gender': ['Male', 'Female']
         }
 
+        # Custom descriptions for each categorical column
+        descriptions = {
+            'Ethnicity': [
+                "- Shows the distribution of students by ethnicity.",
+                "- Helps analyze diversity in the dataset.",
+                "- Caucasian students are the majority.",
+                "- Approximately equal distribution of both African American and Asian students.",
+                "- Other ethnicity students are the minority."
+            ],
+            'Age': [
+                "- Displays the number of students in each age group.",
+                "- Useful for understanding the age demographics.",
+                "- Majority of students are 15 years old.",
+                "- Approximately equal distribution of 16 to 18 years old students."
+            ],
+            'ParentalEducation': [
+                "- Represents the highest education level of parents.",
+                "- Can indicate the impact of parental education on student performance.",
+                "- Countplot of students' parental education forms a rough bell curve.",
+                "- Majority of students' parents has educational backgroud in college.",
+                "- Followed by high school education.",
+                "- While the minority of students' parents has a higher than bachelor's education background."
+
+            ],
+            'Tutoring': [
+                "- Compares students who receive tutoring vs. those who don't.",
+                "- Useful for analyzing the effect of tutoring on grades.",
+                "- Majority of students do not receive tutoring.",
+                "- While the minority of students receive tutoring."
+            ],
+            'ParentalSupport': [
+                "- Shows the level of parental support students receive.",
+                "- Helps understand the role of family involvement in education.",
+                "- Countplot of students' parental support forms a rough bell curve.",
+                "- Majority of students receive moderate parental support.",
+                "- Closely folowed by high parental support.",
+                "- While the minority of students receive no parental support."
+            ],
+            'Extracurricular': [
+                "- Displays the number of students involved in extracurricular activities.",
+                "- Can be used to examine the impact on academic performance.",
+                "- Majority of students are not involved in any extracurricular activities.",
+                "- While the minority of students are involved in some type of extracurricular activities."
+
+            ],
+            'Sports': [
+                "- Represents students' participation in sports.",
+                "- Useful for analyzing the balance between academics and athletics.",
+                "- Majority of students are not involved in any sports.",
+                "- While the minority of students are involved in some type of sports."
+            ],
+            'Music': [
+                "- Shows the number of students involved in music-related activities.",
+                "- Can indicate the relationship between music and academic success.",
+                "- Majority of students are not involved in any music-related activities.",
+                "- While the minority of students are involved in some type of music-related activities."
+            ],
+            'Volunteering': [
+                "- Displays the proportion of students engaged in volunteering.",
+                "- Helps assess students’ involvement in community service.",
+                "- Majority of students are not involved in any volunteering activities.",
+                "- While the minority of students are involved in some type of volunteering activities."
+            ],
+            'Gender': [
+                "- Compares the number of male and female students.",
+                "- Useful for gender-based performance analysis.",
+                "- Approximately equal distribution of both genders in the dataset.",
+                "- Females lead slightly in numbers."
+            ]
+        }
+
+
         # Add a selection box to choose a categorical column
         selected_column = st.selectbox("Select a categorical column to visualize", categorical_columns)
 
@@ -329,25 +403,30 @@ elif page == "📈Analysis":
             plt.xticks(ticks=ticks, labels=labels)
 
             plt.tight_layout()
-            st.pyplot(plt)  # Render the plot in Streamlit
+            st.pyplot(plt)  
+
+            st.write("### 📊 Insights & Interpretation")
+            st.markdown("\n".join(descriptions.get(selected_column, [f"- Distribution of {selected_column}."])))
         else:
             st.warning(f"No custom labels defined for column: {selected_column}")
 
-        st.markdown("""
-        ### Bar Chart Analysis
-        - **Purpose**: 
-            - Visualize student information distribution across the dataset.
-        - **Visualization**: 
-            - Each bar represents the count of students in a specific category.
-        - **Insights**: 
-            - Identify the distribution of students across different categories.
-            - Highlight any imbalances or trends in the data.
-        - **Actionable Use**: 
-            - Optimize resources and study plans based on the distribution of students.
-        """)
+        with st.expander("ℹ️ **Why Bar Charts?**"):
+            st.markdown("""
+            ### Bar Chart Analysis
+            - **Purpose**: 
+                - Visualize student information distribution across the dataset.
+            - **Visualization**: 
+                - Each bar represents the count of students in a specific category.
+            - **Insights**: 
+                - Identify the distribution of students across different categories.
+                - Highlight any imbalances or trends in the data.
+            - **Actionable Use**: 
+                - Optimize resources and study plans based on the distribution of students.
+            """)
+
     elif visualization_option == "📈Histogram":
         st.subheader("Histogram of Numerical Columns")
-        numerical_columns = [col for col in df.columns if df[col].nunique() > 5]
+        numerical_columns = [col for col in df.columns if df[col].nunique() > 5 and col != 'StudentID']
         selected_column = st.selectbox("Select a numerical column to visualize", numerical_columns)
 
         plt.figure(figsize=(8, 5))
@@ -357,18 +436,51 @@ elif page == "📈Analysis":
         plt.ylabel('Frequency')
         plt.tight_layout()
         st.pyplot(plt)
-        st.markdown("""
-        ### Histogram Analysis
-        - **Purpose**: 
-            - Understand the distribution and frequency of numerical data across the dataset.
-        - **Visualization**: 
-            - The histogram displays the frequency of values within specified bins, providing a clear view of how the data is spread.
-        - **Insights**: 
-            - Identify patterns such as skewness, central tendency, and outliers in numerical variables like GPA, absences, or study time.
-            - Highlight any unusual trends or concentrations in the data.
-        - **Actionable Use**: 
+
+        # ✅ Individual descriptions based on the selected column
+        column_descriptions = {
+            "GPA": [
+                "- Represents the distribution of student GPAs.",
+                "- Helps identify the most common GPA range.",
+                "- Can highlight performance gaps or outliers.",
+                "- GPA of students range between 0.0 to 4.0.",
+                "- Histogram shows a rough bell curve, indicating a normal distribution of GPA.",
+                "- Mean GPA of students are approximately 2.0."
+            ],
+            "StudyTimeWeekly": [
+                "- Shows the distribution of hours spent studying per week.",
+                "- Helps determine if most students study enough or too little.",
+               "- Useful for analyzing study habits in relation to performance.",
+                "- Study time of students range between 0 to 20 hours.",
+                "- Histogram shows a right skewed distribution, indicating that most students study less than 10 hours weekly."
+            ],
+            "Absences": [
+                "- Displays the number of absences per student.",
+                "- Can indicate patterns of absenteeism affecting performance.",
+                "- Helps in identifying students who may need intervention.",
+                "- Absences of students range between 0 to 30.",
+                "- Histogram shows an uneven distribution, indicating that there is no clear pattern of absences."
+            ],
+        }
+
+        # Display the selected column’s specific description
+        st.write("### 📊 Insights & Interpretation")
+        description = column_descriptions.get(selected_column, ["- No specific insights available for this column."])
+        st.markdown("\n".join(description))
+
+        with st.expander("ℹ️ **Why Histograms?**"):
+            st.markdown("""
+            ### Histogram Analysis
+            - **Purpose**: 
+                - Understand the distribution and frequency of numerical data across the dataset.
+            - **Visualization**: 
+                - The histogram displays the frequency of values within specified bins, providing a clear view of how the data is spread.
+            - **Insights**: 
+                - Identify patterns such as skewness, central tendency, and outliers in numerical variables like GPA, absences, or study time.
+                - Highlight any unusual trends or concentrations in the data.
+            - **Actionable Use**: 
             - Tailor interventions or resources based on observed patterns (e.g., addressing high absence rates or improving study habits for low GPA students).
-        """)
+            """)
 
     elif visualization_option == "⭐Correlations":
         st.subheader("Correlation Heatmap")
@@ -384,31 +496,49 @@ elif page == "📈Analysis":
             - Understand the relationships and dependencies between numerical variables in the dataset.
         - **Visualization**: 
             - The correlation heatmap displays the strength and direction of correlations (ranging from -1 to 1) between pairs of numerical variables.
+            - The color intensity indicates the strength of the correlation.
+            - Positive correlations are shown in red, while negative correlations are shown in blue.
             - Positive values indicate a direct relationship, while negative values indicate an inverse relationship.
         - **Insights**: 
-            - Identify strongly correlated variables that may influence each other (e.g., GPA and study time).
+            - Identify strongly correlated variables that may influence each other.
             - Highlight weak or no correlations to determine independent variables.
-            - Detect potential multicollinearity issues in predictive modeling.
+            - Absences and GPA have a strong negative correlation of -0.80, indicating that as absences increase, GPA tends to decrease.
+            - GPA and Grade Class have a strong negative correlation of -0.75, indicating that higher GPAs are associated with lower grade classes.
         - **Actionable Use**: 
             - Focus on highly correlated variables when designing interventions (e.g., improving study habits if it strongly correlates with GPA).
             - Exclude redundant features in machine learning models to improve performance and interpretability.
         """)
 
     elif visualization_option == "❌Absences":
-        st.subheader("Absence Analysis")
         plt.figure(figsize=(8, 5))
-        sns.histplot(df["Absences"], bins=30, kde=True)
-        plt.title("Distribution of Absences")
+        
+        # Scatter plot with trend line
+        sns.regplot(x=df["Absences"], y=df["GPA"], scatter_kws={'alpha':0.6}, line_kws={"color": "red"})
+        
+        plt.title("Relationship Between Absences and GPA")
         plt.xlabel("Number of Absences")
-        plt.ylabel("Frequency")
-        plt.tight_layout()
-        st.pyplot(plt)
+        plt.ylabel("GPA")
+        plt.grid(True)
+        st.pyplot(plt) 
+
+        st.write("### 📊Insights & Interpretation")
         st.markdown("""
-        ### Absence Analysis
-        - **Purpose**: Understand the distribution of student absences.
-        - **Insights**: Identify trends in absences, such as whether most students have few or many absences.
-        - **Actionable Use**: Develop strategies to reduce absences for students with high absence rates.
+        - **Negative Correlation**: More absences may lead to lower GPA.
+        - **Outliers**: Very few students with higher GPA despite many absences.
+        - **Trend Line**: The red regression line shows the general relationship between absences and GPA.
+        - **Actionable Insights**:
+          - Identify students with excessive absences for intervention.
+          - Compare this trend with other factors like study time or parental support.
         """)
+
+        with st.expander("ℹ️ **Why absences?**"):
+            st.markdown("""
+            ### Absence Analysis
+            - **Reason**: Number of absences is the **strongest correlated** variable with GPA.
+            - **Purpose**: Understand the distribution of student absences based on GPA.
+            - **Insights**: Identify trends in absences correlated with GPA.
+            - **Actionable Use**: Develop strategies to reduce absences for students with high absence rates.
+            """)
 
 elif page == "🔖Insert Data":
     st.title("Manage Student Records")
