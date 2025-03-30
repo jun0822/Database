@@ -510,12 +510,12 @@ elif page == "🔖Insert Data":
                 cloudrecordcol = clouddb[CLOUD_COLL_NAME]
                 
         # Check if the StudentID already exists
+        try:
         existing_doc = cloudrecordcol.find_one({"StudentID": new_student_id})
         if existing_doc:
-            st.error(f"Student with ID {new_student_id} already exists. Please use a different ID or update the existing record.")
+            st.error(f"Student with ID {new_student_id} already exists. Please use a different ID.")
         else:
-            try:
-                insert_result = cloudrecordcol.insert_one(new_record)
-                st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
-            except Exception as e:
-                st.error(f"Insertion failed: {e}")
+            insert_result = cloudrecordcol.insert_one(new_record)
+            st.success(f"Student {new_student_id} has been added! Inserted ID: {insert_result.inserted_id}")
+    except Exception as e:
+        st.error(f"Insertion failed: {e}")
