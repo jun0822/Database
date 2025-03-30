@@ -504,11 +504,7 @@ elif page == "🔖Insert Data":
             }
             st.write("New Record:", new_record)
 
-            if new_submitted:
-    new_record = {...}
-    st.write("New Record:", new_record)
-
-    # 1) Try connecting
+            # 2) Connect to MongoDB
     try:
         cloud_client = MongoClient(CLOUD_CONN)
         clouddb = cloud_client[CLOUD_DB_NAME]
@@ -518,11 +514,12 @@ elif page == "🔖Insert Data":
         st.error(f"Connection failed: {e}")
         st.stop()
 
-    # 2) Try inserting
+    # 3) Check if StudentID exists, then insert
     try:
         existing_doc = cloudrecordcol.find_one({"StudentID": new_student_id})
         if existing_doc:
-            st.error(f"Student with ID {new_student_id} already exists.")
+            st.error(f"Student with ID {new_student_id} already exists. "
+                     "Please use a different ID or update the existing record.")
         else:
             insert_result = cloudrecordcol.insert_one(new_record)
             st.success(f"Student {new_student_id} added! Inserted ID: {insert_result.inserted_id}")
