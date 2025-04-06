@@ -599,7 +599,7 @@ elif page == "🔖Insert Data":
         new_student_id = st.text_input("StudentID")
         new_age = st.number_input("Age", min_value=15, max_value=18)
         new_gender = st.selectbox("Gender", options=["", "Male", "Female", "Other"], index=0)
-        new_ethnicity = st.selectbox("Ethnicity", options=["", "0", "1", "3"], index=0)
+        new_ethnicity = st.selectbox("Ethnicity", options=["", "0", "1", "2", "3"], index=0)
         new_parentaleducation = st.selectbox("Parental Education", options=["", "0", "1", "3", "4"], index=0)
         new_weeklystudytime = st.number_input("Weekly Study Time", min_value=0, max_value=168)
         new_absences = st.number_input("Absences", min_value=0, max_value=30)
